@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Bizim Anılarımız</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #fff0f5, #ffe6f0);
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: #d63384;
+      margin: 30px;
+    }
+
+    .memory-box {
+      position: relative;
+      width: 250px;
+      background-color: #fffbe7;
+      border-radius: 12px;
+      padding: 15px 20px;
+      margin: 20px auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: transform 0.3s, opacity 0.5s;
+      border: 2px solid #f0c2a0;
+      font-weight: bold;
+      display: none;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .memory-box:hover {
+      transform: scale(1.03);
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      display: none;
+      z-index: 1000;
+      text-align: center;
+    }
+
+    .popup h2 {
+      margin-top: 0;
+      color: #c2185b;
+    }
+
+    .popup p {
+      margin: 15px 0;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      background-color: #d63384;
+      color: white;
+      font-size: 16px;
+      margin-top: 15px;
+      cursor: pointer;
+    }
+
+    .final-question {
+      display: none;
+      text-align: center;
+      margin: 40px 0;
+    }
+
+    .final-question button {
+      margin: 10px;
+    }
+
+    #monkey {
+      position: fixed;
+      width: 80px;
+      height: 80px;
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    .love-note {
+      text-align: center;
+      font-size: 20px;
+      margin: 40px 20px;
+      color: #a50045;
+      opacity: 0;
+      animation: fadeIn 2s ease forwards 5s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <h1>💌 Anılarımız</h1>
+
+  <div class="love-note">Sevgilim, yaptığım hataların farkındayım. Hepsini telafi edeceğim. Beni affet. Seni üzdüm, artık birbirimizi üzmeyelim. Seni çok seviyorum.</div>
+
+  <!-- 6 Anı Kutusu -->
+  <div class="memory-box" onclick="showMemory(0)">1</div>
+  <div class="memory-box" onclick="showMemory(1)">2</div>
+  <div class="memory-box" onclick="showMemory(2)">3</div>
+  <div class="memory-box" onclick="showMemory(3)">4</div>
+  <div class="memory-box" onclick="showMemory(4)">5</div>
+  <div class="memory-box" onclick="showMemory(5)">6</div>
+
+  <!-- Maymun GIF -->
+  <img src="https://media.giphy.com/media/fxsqOYnIMEefC/giphy.gif" id="monkey" />
+
+  <!-- Popup -->
+  <div class="popup" id="popup">
+    <h2 id="memory-title"></h2>
+    <p id="memory-text"></p>
+    <p id="memory-quote" style="font-style: italic;"></p>
+    <button class="btn" onclick="nextMemory()">Devam Et</button>
+  </div>
+
+  <!-- Son Soru -->
+  <div class="final-question" id="final">
+    <h2>Beni affediyor musun?</h2>
+    <button class="btn" onclick="sayYes()">Evet 💖</button>
+    <button class="btn" onclick="sayNo()">Hayır 🙃</button>
+    <div id="final-result" style="margin-top:20px; font-size:18px;"></div>
+  </div>
+
+  <script>
+    const memories = [
+      { title: "1", text: "ilk öpüştüğümüz günü hatırlar mısın sanki zaman durmuş gibiydi.", quote: "seni çok seviyorum affet beni." },
+      { title: "2", text: "ilk elimi tuttğundaki heycanımız peki?", quote: "seni çok seviyorum affet beni." },
+      { title: "3", text: "galataya çıktığımız günkü sevincimiz her şey muazzamdı", quote: "seni çok seviyorum affet beni" },
+      { title: "4", text: "bana ilk aşkım dedğinde kalbim durucak gibiydi", quote: "seni çok seviyorum affet beni" },
+      { title: "5", text: "ilk defa ayaklarını gördüğümdeki o utancın ve sonra bana alışman belkide biraz sevmen", quote: "seni çok seviyorum affet beni" },
+      { title: "6", text: "bana hazırladığın ilk yemekler yediğimde dedim ki evet bu benim karım olmalı", quote: "seni çok seviyorum affet beni." },
+    ];
+
+    let shown = 0;
+    const boxes = document.querySelectorAll('.memory-box');
+
+    function showBoxesSequentially() {
+      boxes.forEach((box, index) => {
+        setTimeout(() => {
+          box.style.display = 'block';
+          box.style.opacity = '0';
+          box.style.transform = 'translateY(20px)';
+          setTimeout(() => {
+            box.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+            box.style.opacity = '1';
+            box.style.transform = 'translateY(0)';
+          }, 50);
+        }, 1000 + index * 800);
+      });
+    }
+
+    showBoxesSequentially();
+
+    function showMemory(index) {
+      document.getElementById('memory-title').textContent = memories[index].title;
+      document.getElementById('memory-text').textContent = memories[index].text;
+      document.getElementById('memory-quote').textContent = memories[index].quote;
+      document.getElementById('popup').style.display = 'block';
+      shown++;
+    }
+
+    function nextMemory() {
+      document.getElementById('popup').style.display = 'none';
+      if (shown >= memories.length) {
+        document.getElementById('final').style.display = 'block';
+      }
+    }
+
+    function sayYes() {
+      document.getElementById('final-result').innerHTML = `
+        <p><strong>SİNEM</strong><br>
+        S: Seninle her şey yeniden başladı.<br>
+        İ: İçimdeki boşluk seninle doldu.<br>
+        N: Ne olursa olsun hep sen.<br>
+        E: Ellerim ellerini özledi.<br>
+        M: Mutluluğumun adı sensin.<br><br>
+        Seni seviyorum umarım bu hazırladığım uygulamayı beğenirsin çok uğraştım elimden bu kadar geldi sana web sayfası hazırladım umarım affedersin artık beni seni çok özledim pıttığını yerim ❤️</p>
+      `;
+    }
+
+    function sayNo() {
+      document.getElementById('final-result').innerHTML = `<p style="color:red;">😤 Götünü keserim (şaka 😅 ama biraz üzüldüm).</p>`;
+    }
+
+    const monkey = document.getElementById('monkey');
+    setInterval(() => {
+      monkey.style.top = Math.random() * 80 + 'vh';
+      monkey.style.left = Math.random() * 90 + 'vw';
+    }, 3000);
+  </script>
+</body>
+</html>
